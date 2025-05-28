@@ -135,7 +135,7 @@ document.getElementById('bagBtn').addEventListener('click', () => {
 });
 document.getElementById('suitcaseBtn').addEventListener('click', () => {
   tg.HapticFeedback.impactOccurred('light');
-  addOrUpdateCard('000029691', '1');
+  addOrUpdateCard('000029691', '2');
 });
 
 function playBeep() {
