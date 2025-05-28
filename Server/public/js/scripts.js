@@ -1,5 +1,6 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
+tg.disableVerticalSwipes();
 
 // Элементы DOM
 const scanBtn = document.getElementById('scanBtn');
@@ -68,8 +69,9 @@ if (orderNumber) {
   deleteOrderBtn.textContent = 'Удалить заказ';
   deleteOrderBtn.className = 'flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition';
   deleteOrderBtn.addEventListener('click', () => {
+    tg.HapticFeedback.impactOccurred('light');
     if (confirm('Вы уверены, что хотите удалить заказ?')) {
-        
+      tg.HapticFeedback.impactOccurred('light');
       const payload = {
         chatId: userChatId,
         type: 'delete_order',
@@ -126,13 +128,36 @@ if (orderNumber) {
     });
 }
 
-
 // Слушаем нажатие кнопок для добавления товаров
-document.getElementById('bagBtn').addEventListener('click', () => addOrUpdateCard('000029690', '1'));
-document.getElementById('suitcaseBtn').addEventListener('click', () => addOrUpdateCard('000029691', '2'));
+document.getElementById('bagBtn').addEventListener('click', () => {
+  tg.HapticFeedback.impactOccurred('light');
+  addOrUpdateCard('000029690', '1');
+});
+document.getElementById('suitcaseBtn').addEventListener('click', () => {
+  tg.HapticFeedback.impactOccurred('light');
+  addOrUpdateCard('000029691', '1');
+});
+
+function playBeep() {
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+
+  oscillator.type = 'triangle';      // Тип волны, можно 'sine', 'square', 'triangle', 'sawtooth'
+  oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); // Частота звука в Гц (1000 — 1 кГц)
+
+  gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); // Громкость (0.1 — тихо)
+
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+
+  oscillator.start();
+  oscillator.stop(audioCtx.currentTime + 0.1); // Звук длится 0.1 секунды
+}
 
 // Сканирование QR-кода
 scanBtn.addEventListener('click', () => {
+  tg.HapticFeedback.impactOccurred('light');
   if (!tg.showScanQrPopup || !tg.closeScanQrPopup) {
     alert('QR сканер не поддерживается');
     return;
@@ -141,6 +166,8 @@ scanBtn.addEventListener('click', () => {
   tg.showScanQrPopup({ text: 'Сканируйте QR-код' });
 
   tg.onEvent('qrTextReceived', function handler(data) {
+    playBeep()
+    tg.HapticFeedback.impactOccurred('light');
     tg.closeScanQrPopup();
     tg.offEvent('qrTextReceived', handler);
 
@@ -174,6 +201,7 @@ function processScannedQR(qrText) {
 
 // Оформление заказа
 orderBtn.addEventListener('click', async () => {
+  tg.HapticFeedback.impactOccurred('light');
   if (scannedItems.length === 0) return alert('Список пуст');
   
   let payload;
@@ -222,17 +250,36 @@ orderBtn.addEventListener('click', async () => {
 });
 
 // Модалки и обработчики
-clearBtn.addEventListener('click', () => confirmDeleteModal.classList.remove('hidden'));
-confirmDeleteYes.addEventListener('click', () => clearCart());
-confirmDeleteNo.addEventListener('click', () => confirmDeleteModal.classList.add('hidden'));
-confirmYes.addEventListener('click', () => deleteItem());
-confirmNo.addEventListener('click', () => cancelDeletion());
+clearBtn.addEventListener('click', () => {
+  tg.HapticFeedback.impactOccurred('light');
+  confirmDeleteModal.classList.remove('hidden');
+});
+confirmDeleteYes.addEventListener('click', () => {
+  tg.HapticFeedback.impactOccurred('light');
+  clearCart();
+});
+confirmDeleteNo.addEventListener('click', () => {
+  tg.HapticFeedback.impactOccurred('light');
+  confirmDeleteModal.classList.add('hidden');
+});
+confirmYes.addEventListener('click', () => {
+  tg.HapticFeedback.impactOccurred('light');
+  deleteItem();
+});
+confirmNo.addEventListener('click', () => {
+  tg.HapticFeedback.impactOccurred('light');
+  cancelDeletion();
+});
 
 // Закрытие модалки с информацией о товаре
-closeInfoModal.addEventListener('click', () => infoModal.classList.add('hidden'));
+closeInfoModal.addEventListener('click', () => {
+  tg.HapticFeedback.impactOccurred('light');
+  infoModal.classList.add('hidden');
+});
 
 // Очистка корзины
 function clearCart() {
+  tg.HapticFeedback.impactOccurred('light');
   scannedItems.length = 0;
   cardList.innerHTML = '';
   updateTotal();
@@ -349,6 +396,7 @@ function addOrUpdateCard(code, price) {
     fetchProductDetails(code);
 
     card.addEventListener('click', async (e) => {
+      tg.HapticFeedback.impactOccurred('light');
       if (!e.target.closest('button')) {
         infoModal.classList.remove('hidden');
         await fetchProductDetails(code);
@@ -359,11 +407,13 @@ function addOrUpdateCard(code, price) {
     const plusBtn = card.querySelector('[data-action="plus"]');
 
     minusBtn.addEventListener('click', (e) => {
+      tg.HapticFeedback.impactOccurred('light');
       e.stopPropagation();
       updateQuantity(code, -1);
     });
 
     plusBtn.addEventListener('click', (e) => {
+      tg.HapticFeedback.impactOccurred('light');
       e.stopPropagation();
       updateQuantity(code, 1);
     });
