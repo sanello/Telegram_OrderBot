@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 import qrcode
 from PIL import Image
 import win32con
+import sys
 
 import builtins
 from datetime import datetime
@@ -21,6 +22,9 @@ original_print = builtins.print
 
 import logging
 logging.getLogger('telethon.network.mtprotosender').setLevel(logging.WARNING)
+
+# Получаем имя пользователя из аргументов командной строки
+USERNAME_FOR_MESSAGE = sys.argv[1] if len(sys.argv) > 1 else "@defaultuser"
 
 # Загрузка переменных окружения
 load_dotenv('./config.env')
@@ -43,6 +47,30 @@ client = TelegramClient('session_name', API_ID, API_HASH)
 def print(*args, **kwargs):
     time_prefix = datetime.now().strftime("[%H:%M:%S]")
     original_print(time_prefix, *args, **kwargs)
+    
+# ----------- Отправка в телегу -----------
+async def send_temp_message(text: str, username: str, delay_seconds: int = 20):
+    try:
+        if not username or username == "@defaultuser":
+            print("Telegram: Username не указан или равен @defaultuser — сообщение не отправляется.")
+            return
+
+        # Получаем объект пользователя
+        entity = await client.get_entity(username)
+
+        # Отправляем сообщение
+        message = await client.send_message(entity, text)
+        print(f"Telegram: Временное сообщение отправлено пользователю {username}")
+
+        # Ждём перед удалением
+        await asyncio.sleep(delay_seconds)
+
+        # Удаляем сообщение
+        await client.delete_messages(entity, message.id)
+        print(f"Telegram: Сообщение удалено через {delay_seconds} секунд")
+
+    except Exception as e:
+        print(f"Ошибка при отправке или удалении сообщения пользователю {username}: {e}")
 
 # ----------- Печать чека -----------
 def print_text(printer_name: str, text: str):
@@ -358,6 +386,7 @@ async def handle_order(data):
         if order_summary := await wait_for_bot_response("Состав заказа"):
             await send_order_number_to_server(data['chatId'], order_summary, data['data'])
             print_text(PRINTER_NAME, order_summary)
+            await send_temp_message(order_summary, USERNAME_FOR_MESSAGE)
     else:
         print("Обработчик заказов: Ошибка создания заказа.")
 
@@ -389,6 +418,7 @@ async def handle_edit_order(data):
     if order_summary := await wait_for_bot_response("Состав заказа"):
         await send_order_number_to_server(data['chatId'], order_summary, data['data'])
         print_text(PRINTER_NAME, order_summary)
+        await send_temp_message(order_summary, USERNAME_FOR_MESSAGE)
 
 async def handle_delete_order(data):
     chat_id = data["chatId"]
