@@ -13,14 +13,14 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-  <link rel="stylesheet" href="/css/main.css?42">
+  <link rel="stylesheet" href="/css/main.css?1.0">
 </head>
 
 <body class="bg-gray-900 text-white flex flex-col h-full overflow-hidden p-4">
 
   <!-- Заголовок и кнопки -->
   <div class="mb-4 text-center">
-    <h1 id="orderTitle" class="text-xl font-semibold mb-2">Место для вашей шутки</h1>
+    <h1 id="orderTitle" class="text-xl font-semibold mb-2">Создать новый заказ</h1>
     <div class="flex justify-center gap-4 mb-4">
       <button id="bagBtn" class="flex items-center bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 transition">
         <i class="fas fa-shopping-bag mr-2"></i>М
@@ -46,8 +46,9 @@
   </div>
 
   <!-- Итого -->
-  <div class="mt-2 text-right text-sm text-gray-300">
-    <span id="totalLine">Итого: 0 шт. на 0.00 руб.</span>
+  <div class="mt-2 flex justify-between text-sm text-gray-300">
+    <span id="discountInfo">Розничный покупатель</span>
+    <span id="totalLine">Итого: 0 шт. на 0.00 р.</span>
   </div>
 
   <!-- Подтверждение удаления -->
@@ -80,7 +81,7 @@
     </div>
   </div>
 
-  <script src="/js/scripts.js?77"></script>
+  <script src="/js/scripts.js?1.1.7"></script>
 
 </body>
 
