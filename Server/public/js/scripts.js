@@ -20,6 +20,7 @@ const confirmDeleteNo = document.getElementById('confirmDeleteNo');
 const header = document.getElementById('orderTitle');
 const speechBubble = document.getElementById('speechBubble');
 const btnPlaceholder = document.getElementById('BtnPlaceholder');
+const discountSpan = document.getElementById('discountInfo');
 
 // Проверка параметра orderNumber в адресной строке
 const urlParams = new URLSearchParams(window.location.search);
@@ -123,7 +124,6 @@ if (orderNumber) {
       updateTotal();
     })
     .catch(err => {
-      console.error('Не удалось загрузить товары заказа:', err);
       alert('Ошибка загрузки данных заказа');
     });
 }
@@ -182,6 +182,13 @@ function processScannedQR(qrText) {
     window.location.href = `https://order.warflame.net/?orderNumber=${qrText}`;
     return;
   }
+  
+  const parts = qrText.split(':');
+  if (parts.length >= 3 && /^\d+$/.test(parts[0])) {
+    // Обновляем текст в discountInfo
+    discountSpan.textContent = `Дисконт:${parts[0]}`;
+    return;
+  }
     
   if (qrText.startsWith('https://hi-tech.md/?')) {
     const url = new URL(qrText);
@@ -192,10 +199,10 @@ function processScannedQR(qrText) {
     if (productCode && price) {
       addOrUpdateCard(productCode, price);
     } else {
-      addOrUpdateCard('Ошибка', 'Данные не найдены');
+      alert('Ошибка: Данные не найдены');
     }
   } else {
-    addOrUpdateCard('Недопустимый домен', '');
+    alert('Недопустимый домен');
   }
 }
 
@@ -245,7 +252,6 @@ orderBtn.addEventListener('click', async () => {
     tg.close();
   } catch (err) {
     alert('Ошибка отправки заказа');
-    console.error(err);
   }
 });
 
@@ -325,7 +331,6 @@ async function fetchProductDetails(productCode) {
       throw new Error('Название товара не получено');
     } catch (error) {
       attempts++;
-      console.error(`Попытка ${attempts} не удалась: ${error.message}`);
       if (attempts < maxRetries) {
         await new Promise(resolve => setTimeout(resolve, 1000));
       } else {
@@ -481,5 +486,5 @@ function updateTotal() {
   const totalQuantity = scannedItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = scannedItems.reduce((sum, item) => sum + item.quantity * parseFloat(item.price), 0);
 
-  totalLine.innerHTML = `Итого: ${totalQuantity} шт. на ${totalPrice.toFixed(2)} руб.`;
+  totalLine.innerHTML = `Итого: ${totalQuantity} шт. на ${totalPrice.toFixed(2)} р.`;
 }
