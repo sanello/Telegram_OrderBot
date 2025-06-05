@@ -42,7 +42,7 @@ const productCache = new Map();
 const orderCache = new Map();
 
 /**
- * Кеширование товара с автоматическим удалением через 10 минут
+ * Кеширование товара с автоматическим удалением через 15 секунд
  */
 function cacheProduct(productCode, data) {
   if (productCache.has(productCode)) {
@@ -52,13 +52,13 @@ function cacheProduct(productCode, data) {
   const timeout = setTimeout(() => {
     productCache.delete(productCode);
     console.log(`Кеш очищен: ${productCode}`);
-  }, 10 * 60 * 1000);
+  }, 15 * 1000);
 
   productCache.set(productCode, { data, timeout });
 }
 
 /**
- * Кеширование заказа с автоматическим удалением через 10 минут
+ * Кеширование заказа с автоматическим удалением через 3 часа
  */
 
 function cacheOrder(orderNumber, items) {
@@ -222,15 +222,18 @@ if (allowedChatIds.has(String(chatId))) {
   bot.sendMessage(chatId, welcomeMessage, {
     parse_mode: 'Markdown',
     reply_markup: {
-      inline_keyboard: [
-        [
-          {
-            text: '🔑 Авторизация',
-            url: `https://order.warflame.net/?token=${token}`
-          }
+        inline_keyboard: [
+            [
+                {
+                    text: '🔑 Авторизация',
+                    web_app: {
+                        url: `https://order.warflame.net/?token=${token}`
+                    }
+                }
+            ]
         ]
-      ]
     }
+
   });
 } else {
   bot.sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' });
@@ -373,7 +376,7 @@ app.get('/product-details', (req, res) => {
  */
 app.get('/order-items', (req, res) => {
 
-    console.log('Текущий кэш:', [...orderCache.entries()]);
+  console.log('Текущий кэш:', [...orderCache.entries()]);
 
   const order = orderCache.get(req.query.orderNumber);
   order ? res.json(order.data) : res.status(404).json({ error: 'Заказ не найден' });
