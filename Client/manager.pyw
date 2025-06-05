@@ -50,11 +50,12 @@ def save_autostart(data):
         json.dump(data, f, indent=2)
 
 class ScriptEntry:
-    def __init__(self, parent, folder, log_callback, autostart_state, on_autostart_change):
+    def __init__(self, parent, folder, log_callback, autostart_state, on_autostart_change, get_selected_user):
         self.folder = folder
         self.log_callback = log_callback
         self.process = None
         self.on_autostart_change = on_autostart_change
+        self.get_selected_user = get_selected_user
 
         self.frame = tk.Frame(parent)
         self.frame.pack(fill=tk.X, padx=10, pady=2)
@@ -93,8 +94,18 @@ class ScriptEntry:
 
     def run_script(self):
         try:
+            user = self.get_selected_user()
+            arg = "@defaultuser"
+            if user == "Марина":
+                arg = "@Marinashpi"
+            elif user == "Алексей":
+                arg = "@Leshii077"
+                
+            self.log_callback(f"[{self.folder}] Выбран аргумент: {arg}\n")
+            
             self.process = subprocess.Popen(
-                ["pythonw", "-u", "start.py"],
+                #["pythonw", "-u", "start.py"],
+                ["pythonw", "-u", "start.py", arg],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 universal_newlines=True,
@@ -138,6 +149,15 @@ class ScriptEntry:
         self._enable_buttons()
 
 class ScriptRunnerApp:
+    def on_user_change(self):
+        user = self.selected_user.get()
+        self.append_log(f"🔄 Пользователь изменён на: {user}\n")
+
+        self.stop_all()  # вызываем остановку всех скриптов
+
+        # запускаем автозапуск через 1 секунду (чтобы успели остановиться)
+        self.root.after(1000, self.autostart_scripts)
+    
     def __init__(self, root):
         self.root = root
         self.root.title("Менеджер процессов")
@@ -162,10 +182,22 @@ class ScriptRunnerApp:
         self.left_panel.grid(row=0, column=0, sticky="n", padx=(0, 10))
 
         self.start_all_button = tk.Button(self.left_panel, text="🔁 Запустить все", width=20, command=self.start_all)
-        self.start_all_button.pack(pady=10, padx=10)
+        self.start_all_button.pack(pady=0, padx=10)
 
         self.stop_all_button = tk.Button(self.left_panel, text="⛔ Остановить все", width=20, command=self.stop_all)
-        self.stop_all_button.pack(pady=10, padx=10)
+        self.stop_all_button.pack(pady=0, padx=10)
+
+        # Радиокнопки "Алексей" и "Марина"
+        self.selected_user = tk.StringVar(value="")  # пустое значение по умолчанию
+
+        radio_frame = tk.Frame(self.left_panel)
+        radio_frame.pack(pady=(5, 10), padx=10, anchor='w')
+
+        self.alexey_radio = tk.Radiobutton(radio_frame, text="Алексей", variable=self.selected_user, value="Алексей", command=self.on_user_change)
+        self.alexey_radio.pack(side=tk.LEFT, padx=(0, 10))
+
+        self.marina_radio = tk.Radiobutton(radio_frame, text="Марина", variable=self.selected_user, value="Марина", command=self.on_user_change)
+        self.marina_radio.pack(side=tk.LEFT)
 
         self.script_frame = tk.LabelFrame(self.main_frame, text="Скрипты")
         self.script_frame.grid(row=0, column=1, sticky="nw")
@@ -203,7 +235,8 @@ class ScriptRunnerApp:
                 folder,
                 self.append_log,
                 self.autostart_config.get(folder, False),
-                self.update_autostart
+                self.update_autostart,
+                get_selected_user=lambda: self.selected_user.get()  # передаем функцию
             )
             self.script_entries.append(entry)
 
