@@ -25,12 +25,10 @@ const discountSpan = document.getElementById('discountInfo');
 // Проверка параметра orderNumber в адресной строке
 const urlParams = new URLSearchParams(window.location.search);
 const orderNumber = urlParams.get('orderNumber');
-let token = urlParams.get('token');
 
 // Массив для хранения товаров
 let pendingDeleteCode = null;
 const scannedItems = [];
-const userChatId = tg.initDataUnsafe?.user?.id || null;
 
 // Количество товаров для удаления при редактировании
 let deletetotalQuantity = 0;
@@ -41,12 +39,6 @@ function addCSSFile(href) {
   link.rel = 'stylesheet';
   link.href = href;
   document.head.appendChild(link);
-}
-
-// Если токен найден, сохраняем его в localStorage
-if (token) {
-  localStorage.setItem('jwt', token);
-  alert('Сохранён токен:\n' + token);
 }
 
 if (orderNumber) {
@@ -74,7 +66,7 @@ if (orderNumber) {
     if (confirm('Вы уверены, что хотите удалить заказ?')) {
       tg.HapticFeedback.impactOccurred('light');
       const payload = {
-        chatId: userChatId,
+        initData: tg.initData,
         type: 'delete_order',
         orderNumber: orderNumber
       };
@@ -82,8 +74,7 @@ if (orderNumber) {
       fetch('/order', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       })
@@ -215,7 +206,7 @@ orderBtn.addEventListener('click', async () => {
   
     if (orderNumber) {
         payload = {
-            chatId: userChatId,
+            initData: tg.initData,
             type: 'edit_order',
             orderNumber: orderNumber,
             totalQuantity: deletetotalQuantity,
@@ -228,7 +219,7 @@ orderBtn.addEventListener('click', async () => {
             };
         } else {
         payload = {
-            chatId: userChatId,
+            initData: tg.initData,
             type: 'order',
             data: scannedItems.map((item, index) => ({
                 cardNumber: index + 1,
@@ -243,8 +234,7 @@ orderBtn.addEventListener('click', async () => {
     await fetch('/order', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('jwt')}`  // Здесь добавляем токен
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload),
     });
@@ -382,11 +372,10 @@ function addOrUpdateCard(code, price) {
     fetch('/order', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('jwt')}`  // Здесь добавляем токен
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        chatId: userChatId,
+        initData: tg.initData,
         type: 'name',
         data: { productCode: code },
       }),
