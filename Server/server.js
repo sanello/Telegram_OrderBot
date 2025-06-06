@@ -42,6 +42,56 @@ const productCache = new Map();
 const orderCache = new Map();
 
 /**
+ * Верификация пользователя
+ */
+
+const crypto = require('crypto');
+
+function parseInitData(initDataString) {
+  const params = new URLSearchParams(initDataString);
+  const userStr = params.get('user');
+  if (!userStr) return null;
+
+  try {
+    const user = JSON.parse(decodeURIComponent(userStr));
+    return user;
+  } catch (e) {
+    console.error('Ошибка парсинга user из initData:', e);
+    return null;
+  }
+}
+
+function validateInitData(initDataRaw) {
+
+  const secretKey = crypto
+    .createHmac('sha256', 'WebAppData')
+    .update(TELEGRAM_BOT_TOKEN)
+    .digest();
+
+  const urlParams = new URLSearchParams(initDataRaw);
+  const receivedHash = urlParams.get('hash');
+  urlParams.delete('hash');
+
+  const entries = [...urlParams.entries()];
+
+  const dataCheckString = entries
+    .map(([key, value]) => `${key}=${value}`)
+    .sort()
+    .join('\n');
+
+  const computedHash = crypto
+    .createHmac('sha256', secretKey)
+    .update(dataCheckString)
+    .digest('hex');
+
+  const isValid = computedHash === receivedHash;
+  console.log(isValid ? '✔️ Подпись валидна' : '❌ Подпись НЕВЕРНА');
+
+  return isValid;
+}
+
+
+/**
  * Кеширование товара с автоматическим удалением через 15 секунд
  */
 function cacheProduct(productCode, data) {
@@ -79,8 +129,26 @@ function cacheOrder(orderNumber, items) {
  * Рассылка сообщения конкретному WebSocket клиенту по chatId
  */
 function broadcastToClients(data) {
+  let targetChatId = null;
+  
+  // Если есть initData - парсим и выводим user id
+  if (data.initData) {
+    const user = parseInitData(data.initData);
+    if (user && user.id) {
+      console.log('ID пользователя из initData:', user.id);
+      data.chatId = user.id;  // добавляем в JSON поле chat
+      targetChatId = String(user.id);
+    } else {
+      console.log('initData присутствует, но user_id не найден');
+    }
+  }
+  
+   if (!targetChatId) {
+    console.warn('targetChatId не определён — сообщение не отправлено');
+    return;
+  }
+  
   const message = JSON.stringify(data);
-  const targetChatId = String(data.chatId);
 
   for (const client of clients) {
     if (
@@ -207,8 +275,7 @@ ${chatId}
 ${token}
 \`\`\`
 Добавь эти данные в конфиг своего приложения (config.env). 
-
-В конце просто нажми кнопку 👇👇👇«Авторизация»👇👇👇 Удачи! 🚀
+Удачи! 🚀
 `
 
         /**
@@ -225,9 +292,9 @@ if (allowedChatIds.has(String(chatId))) {
         inline_keyboard: [
             [
                 {
-                    text: '🔑 Авторизация',
+                    text: '🔑 my.telegram.org',
                     web_app: {
-                        url: `https://order.warflame.net/?token=${token}`
+                        url: `https://my.telegram.org/`
                     }
                 }
             ]
@@ -333,31 +400,23 @@ app.use(express.static(path.join(__dirname, 'public')));
  * Получение данных заказа от фронтенда и рассылка по WebSocket клиентам
  */
 app.post('/order', (req, res) => {
-  const token = req.headers['authorization']?.split(' ')[1]; // Извлекаем токен из заголовка Authorization
+  const initData = req.body.initData;
 
-  if (!token) {
-    return res.status(401).send('Отсутствует токен авторизации');
+  if (!initData) {
+    return res.status(400).send('initData отсутствует');
   }
 
-  let user;
-  
   try {
-    user = jwt.verify(token, JWT_SECRET);
+    const data = validateInitData(initData);
+    
+    // Передаём заказ WebSocket-клиентам
+    broadcastToClients(req.body);
+
+    res.status(200).send('Заказ отправлен клиентам');
   } catch (err) {
-    return res.status(403).send('Недействительный токен');
+    console.error('Ошибка валидации initData:', err.message);
+    res.status(403).send('Неверный initData');
   }
-  
-  if (!req.body || Object.keys(req.body).length === 0) {
-    return res.status(400).send('Неверные данные заказа');
-  }
-
-  // Используем данные о пользователе из req.user
-  console.log(`Получен заказ от пользователя с ID: ${user.user_id}`);
-
-  // Передача данных клиентам
-  broadcastToClients(req.body);
-
-  res.status(200).send('Заказ отправлен клиентам');
 });
 
 /**
@@ -375,9 +434,7 @@ app.get('/product-details', (req, res) => {
  * Пример: /order-items?orderNumber=144786
  */
 app.get('/order-items', (req, res) => {
-
   console.log('Текущий кэш:', [...orderCache.entries()]);
-
   const order = orderCache.get(req.query.orderNumber);
   order ? res.json(order.data) : res.status(404).json({ error: 'Заказ не найден' });
 });
