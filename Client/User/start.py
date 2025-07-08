@@ -7,6 +7,7 @@ import re
 import textwrap
 import websockets
 from telethon import TelegramClient, events
+from telethon.tl.types import PeerUser
 import win32print
 import win32ui
 from dotenv import load_dotenv
@@ -49,7 +50,7 @@ def print(*args, **kwargs):
     original_print(time_prefix, *args, **kwargs)
     
 # ----------- Отправка в телегу -----------
-async def send_temp_message(text: str, username: str, delay_seconds: int = 20):
+async def send_temp_message(text: str, username: str, delay_seconds: int = 30):
     try:
         if not username or username == "@defaultuser":
             print("Telegram: Username не указан или равен @defaultuser — сообщение не отправляется.")
@@ -57,9 +58,11 @@ async def send_temp_message(text: str, username: str, delay_seconds: int = 20):
 
         # Получаем объект пользователя
         entity = await client.get_entity(username)
+        entitykassa = await client.get_entity(PeerUser(1751061616))
 
         # Отправляем сообщение
         message = await client.send_message(entity, text)
+        messagekassa = await client.send_message(entitykassa, text)
         print(f"Telegram: Временное сообщение отправлено пользователю {username}")
 
         # Ждём перед удалением
@@ -67,6 +70,7 @@ async def send_temp_message(text: str, username: str, delay_seconds: int = 20):
 
         # Удаляем сообщение
         await client.delete_messages(entity, message.id)
+        await client.delete_messages(entitykassa, messagekassa.id)
         print(f"Telegram: Сообщение удалено через {delay_seconds} секунд")
 
     except Exception as e:
