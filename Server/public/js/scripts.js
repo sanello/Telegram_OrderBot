@@ -52,7 +52,7 @@ if (orderNumber) {
   orderBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
   
   // Подключение CSS файла
-  addCSSFile('/css/pepe.css?42');
+  addCSSFile('/css/pepe.css?1.2');
   
   // Убираем свойство display
   speechBubble.style.removeProperty('display');
@@ -117,6 +117,12 @@ if (orderNumber) {
     .catch(err => {
       alert('Ошибка загрузки данных заказа');
     });
+} else {
+  // Запуск сканера при старте
+  window.addEventListener('DOMContentLoaded', () => {
+    tg.HapticFeedback.impactOccurred('medium');
+    startQRScanOnce();
+  });
 }
 
 // Слушаем нажатие кнопок для добавления товаров
@@ -147,8 +153,8 @@ function playBeep() {
 }
 
 // Сканирование QR-кода
-scanBtn.addEventListener('click', () => {
-  tg.HapticFeedback.impactOccurred('light');
+function startQRScanOnce() {
+
   if (!tg.showScanQrPopup || !tg.closeScanQrPopup) {
     alert('QR сканер не поддерживается');
     return;
@@ -157,7 +163,7 @@ scanBtn.addEventListener('click', () => {
   tg.showScanQrPopup({ text: 'Сканируйте QR-код' });
 
   tg.onEvent('qrTextReceived', function handler(data) {
-    playBeep()
+    playBeep();
     tg.HapticFeedback.impactOccurred('light');
     tg.closeScanQrPopup();
     tg.offEvent('qrTextReceived', handler);
@@ -165,6 +171,13 @@ scanBtn.addEventListener('click', () => {
     const qrText = data.data;
     processScannedQR(qrText);
   });
+}
+
+// Повторный запуск сканера по кнопке
+scanBtn.addEventListener('click', () => {
+  tg.HapticFeedback.impactOccurred('light');
+
+  startQRScanOnce();
 });
 
 // Обработка сканированного QR-кода
