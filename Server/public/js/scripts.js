@@ -103,7 +103,7 @@ if (orderNumber) {
     .then(items => {
       items.forEach(item => {
         // Добавляем товар в корзину с его ценой
-        addOrUpdateCard(item.code, item.price);
+        addOrUpdateCard(item.code, item.price, false);
         
         // Определяем количество уникальных товаров для удаления при редактировании
         if (item.cardNumber && item.cardNumber > deletetotalQuantity) {
@@ -275,6 +275,7 @@ orderBtn.addEventListener('click', async () => {
                 cardNumber: index + 1,
                 code: item.code,
                 price: item.price,
+                owner: item.owner !== false,
                 quantity: item.quantity
                 })),
             };
@@ -430,7 +431,7 @@ function showErrorProductDetails(productCode) {
 }
 
 // Добавить или обновить товар в корзине
-function addOrUpdateCard(code, price) {
+function addOrUpdateCard(code, price, owner = true) {
   let item = scannedItems.find(item => item.code === code);
 
   if (item) {
@@ -450,9 +451,9 @@ function addOrUpdateCard(code, price) {
     }).catch(console.error);
 
     const quantity = 1;
-    scannedItems.push({ code, price, quantity });
+    scannedItems.push({ code, price, quantity, owner });
 
-    const card = createCardElement(code, price);
+    const card = createCardElement(code, price, owner);
     cardList.appendChild(card);
 
     fetchProductDetails(code);
@@ -493,9 +494,17 @@ function addOrUpdateCard(code, price) {
 }
 
 // Создание элемента карточки товара
-function createCardElement(code, price) {
+function createCardElement(code, price, owner) {
   const card = document.createElement('div');
+  
+  // Базовые классы
   card.className = 'bg-gray-800 shadow rounded-xl p-4 border border-gray-700 flex flex-col space-y-2 cursor-pointer z-1;';
+  
+   // Если owner === false, затемняем карточку
+  if (owner === false) {
+    card.classList.add('opacity-40');
+  }
+  
   card.id = `card-${code}`;
 
   card.innerHTML = `
