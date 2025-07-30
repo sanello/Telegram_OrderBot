@@ -1,26 +1,27 @@
 {
-   "author" : "",
-   "dependencies" : {
-      "axios" : "^1.6.0",
-      "dotenv" : "^16.3.1",
-      "express" : "^4.18.2",
-      "jsonwebtoken" : "^8.5.1",
-      "node-fetch" : "^2.6.7",
-      "node-telegram-bot-api" : "^0.53.0",
-      "ws" : "^8.17.0"
+   "author": "",
+   "dependencies": {
+      "@tailwindcss/cli": "^4.1.11",
+      "axios": "^1.11.0",
+      "dotenv": "^17.2.1",
+      "express": "^5.1.0",
+      "jsonwebtoken": "^9.0.2",
+      "node-telegram-bot-api": "^0.66.0",
+      "tailwindcss": "^4.1.11",
+      "ws": "^8.18.3"
    },
-   "description" : "Telegram WebApp with QR scanning and order submission",
-   "devDependencies" : {
-      "nodemon" : "^3.0.1"
+   "description": "Telegram WebApp with QR scanning and order submission",
+   "devDependencies": {
+      "nodemon": "^3.1.10"
    },
-   "keywords" : [],
-   "license" : "ISC",
-   "main" : "server.js",
-   "name" : "order.warflame.net",
-   "scripts" : {
-      "dev" : "nodemon server.js",
-      "start" : "node server.js"
+   "keywords": [],
+   "license": "ISC",
+   "main": "server.js",
+   "name": "order.warflame.net",
+   "scripts": {
+      "dev": "nodemon server.js",
+      "start": "node server.js"
    },
-   "type" : "commonjs",
-   "version" : "1.0.0"
+   "type": "commonjs",
+   "version": "1.0.0"
 }
