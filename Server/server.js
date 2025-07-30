@@ -7,7 +7,6 @@ const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
 const fs = require('fs');
-const fetch = require('node-fetch');
 const TelegramBot = require('node-telegram-bot-api');
 const jwt = require('jsonwebtoken');
 const url = require('url');
@@ -401,6 +400,8 @@ app.use(express.static(path.join(__dirname, 'public')));
  */
 app.post('/order', (req, res) => {
   const initData = req.body.initData;
+  
+  console.log('Получен запрос /order:', req.body);
 
   if (!initData) {
     return res.status(400).send('initData отсутствует');
