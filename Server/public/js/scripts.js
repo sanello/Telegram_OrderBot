@@ -21,6 +21,12 @@ const header = document.getElementById('orderTitle');
 const speechBubble = document.getElementById('speechBubble');
 const btnPlaceholder = document.getElementById('BtnPlaceholder');
 const discountSpan = document.getElementById('discountInfo');
+const bagBtn = document.getElementById('bagBtn');
+const suitcaseBtn = document.getElementById('suitcaseBtn');
+const editInput = document.getElementById('editInput');
+const editBtn = document.getElementById('editBtn');
+const editOrderBtn = document.getElementById('editOrderBtn');
+const addItemBtn = document.getElementById('addItemBtn');
 
 // Проверка параметра orderNumber в адресной строке
 const urlParams = new URLSearchParams(window.location.search);
@@ -126,13 +132,55 @@ if (orderNumber) {
 }
 
 // Слушаем нажатие кнопок для добавления товаров
-document.getElementById('bagBtn').addEventListener('click', () => {
+bagBtn.addEventListener('click', () => {
   tg.HapticFeedback.impactOccurred('light');
   addOrUpdateCard('000029690', '1');
 });
-document.getElementById('suitcaseBtn').addEventListener('click', () => {
+suitcaseBtn.addEventListener('click', () => {
   tg.HapticFeedback.impactOccurred('light');
   addOrUpdateCard('000029691', '2');
+});
+
+// Кнопка ручного ввода кода товара или номера заказа
+editBtn.addEventListener('click', () => {
+  tg.HapticFeedback.impactOccurred('light');
+  
+  editModal.classList.remove('hidden');
+  
+  // фокус на поле ввода
+  document.getElementById("editInput").focus();
+});
+
+// Редактирование заказа (ручной ввод)
+editOrderBtn.addEventListener('click', () => {
+  tg.HapticFeedback.impactOccurred('light');
+  
+  let editOrderinputValue = editInput.value.trim(); // удаляет пробелы в начале и конце
+  if (!editOrderinputValue) return; // проверка на пустоту
+
+  window.location.href = `https://order.warflame.net/?orderNumber=${encodeURIComponent(editOrderinputValue)}`;
+  
+  return;
+});
+
+// Добавить товар по коду (ручной ввод)
+addItemBtn.addEventListener('click', () => {
+  tg.HapticFeedback.impactOccurred('light');
+  
+  let productCodeinputValue = editInput.value.trim(); // удаляет пробелы в начале и конце
+  if (!productCodeinputValue) return; // проверка на пустоту
+  
+  // Добавляем ведущие нули до 9 символов
+  productCodeinputValue = productCodeinputValue.padStart(9, '0');
+  
+  addOrUpdateCard(productCodeinputValue, "0");
+  
+  editModal.classList.add('hidden');
+  
+  // очистка поля ввода
+  editInput.value = '';
+
+  return;
 });
 
 function playBeep() {
@@ -284,6 +332,13 @@ confirmNo.addEventListener('click', () => {
 closeInfoModal.addEventListener('click', () => {
   tg.HapticFeedback.impactOccurred('light');
   infoModal.classList.add('hidden');
+});
+
+// Закрытие модалки с ручного ввода кода товара или номера заказа
+closeEditModal.addEventListener('click', () => {
+  tg.HapticFeedback.impactOccurred('light');
+  editModal.classList.add('hidden');
+  editInput.value = '';
 });
 
 // Очистка корзины
@@ -452,7 +507,7 @@ function createCardElement(code, price) {
     </div>
     <div class="flex justify-between items-center">
       <div class="flex flex-col space-y-2">
-        <p><strong>Код:</strong> ${code}</p>
+        <p><strong>Код:</strong> ${Number(code)}</p>
         <p><strong>Цена:</strong> ${price} ₽</p>
       </div>
       <div class="flex items-center space-x-2">
