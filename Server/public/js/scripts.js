@@ -498,7 +498,7 @@ function createCardElement(code, price, owner) {
   const card = document.createElement('div');
   
   // Базовые классы
-  card.className = 'bg-gray-800 shadow rounded-xl p-4 border border-gray-700 flex flex-col space-y-2 cursor-pointer z-1;';
+  card.className = 'relative overflow-hidden bg-gray-800 shadow rounded-xl p-4 border flex flex-col space-y-2 cursor-pointer z-1;';
   
    // Если owner === false, затемняем карточку
   if (owner === false) {
@@ -515,7 +515,7 @@ function createCardElement(code, price, owner) {
         </div>
     </div>
     <div class="flex justify-between items-center">
-      <div class="flex flex-col space-y-2">
+      <div class="flex flex-col">
         <p><strong>Код:</strong> ${Number(code)}</p>
         <p><strong>Цена:</strong> ${price} ₽</p>
       </div>
@@ -526,6 +526,22 @@ function createCardElement(code, price, owner) {
       </div>
     </div>
   `;
+  
+  //заглушка для отображения скидки
+  if (code === "000029691") {
+    // оранжевая рамка карточки
+    card.classList.add('border-orange-500');
+      
+    card.innerHTML += `
+        <div class="absolute bottom-7 -left-6 transform rotate-45 origin-bottom-left bg-orange-500 text-white text-sm font-bold px-6 pb-2 shadow-md select-none pointer-events-none z-10">
+            42%
+        </div>
+    `;
+    
+  } else {
+    // серая рамка карточки 
+    card.classList.add('border-gray-700');
+  }
 
   return card;
 }
